@@ -31,7 +31,7 @@ assert_not() {
 # py DESCRIPTION PYTHON_EXPR — PYTHON_EXPR must raise on failure
 py() {
   local desc="$1" expr="$2"
-  assert "$desc" python3 - "$CI" <<EOF
+  assert "$desc" uv run --with pyyaml python3 - "$CI" <<EOF
 import sys, yaml
 doc = yaml.safe_load(open(sys.argv[1]))
 on = doc[True]  # YAML 'on' parses as boolean True
