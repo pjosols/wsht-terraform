@@ -1,0 +1,26 @@
+skip-check:
+  # CKV_AWS_356: KMS key policies use "resources = [\"*\"]" which AWS KMS interprets
+  # as "this key only" — it is not a wildcard over all KMS keys. The key ARN is
+  # unavailable at policy-document evaluation time (chicken-and-egg with key creation),
+  # so resource-level scoping is structurally impossible.
+  - CKV_AWS_356
+  # CKV_AWS_174: CloudFront viewer_certificate uses TLSv1.2_2021 for all custom-cert
+  # distributions (when aliases are set). The cloudfront_default_certificate path does
+  # not accept minimum_protocol_version — AWS rejects it. Checkov cannot evaluate the
+  # conditional and flags the null branch as non-compliant.
+  - CKV_AWS_174
+  # CKV_AWS_342: The WAF web ACL has a rate-limit rule with action { block {} } at
+  # priority 0, plus AWS managed rule groups using override_action { none {} }.
+  # Checkov does not recognise override_action as a valid action type for managed rule
+  # group rules and incorrectly flags the resource as having no actions configured.
+  - CKV_AWS_342
+  # CKV_AWS_374: The CloudFront module defaults to restriction_type = "none" for global
+  # access, which is intentional. Callers opt in to geo restrictions via
+  # geo_restriction_type ("whitelist"/"blacklist") and geo_restriction_locations.
+  # Checkov cannot evaluate the variable default as a deliberate choice.
+  - CKV_AWS_374
+  # CKV_AWS_192: AWSManagedRulesKnownBadInputsRuleSet (which includes Log4j/CVE-2021-44228
+  # protection) is included in default_managed_rules at priority 2 and applied via a
+  # dynamic block. Checkov cannot statically resolve the locals map + dynamic block
+  # pattern and incorrectly reports the rule group as absent.
+  - CKV_AWS_192

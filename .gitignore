@@ -1,0 +1,8 @@
+.ltc/
+.kiro/
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+QUEUE_STATUS.md
+ltc.toml
