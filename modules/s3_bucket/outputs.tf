@@ -17,3 +17,8 @@ output "bucket_domain_name" {
   description = "Global domain name of the S3 bucket (for CloudFront logging config)."
   value       = aws_s3_bucket.this.bucket_domain_name
 }
+
+output "bucket_policy_document" {
+  description = "The merged bucket policy JSON applied to the bucket (SSL-deny plus any caller-supplied statements)."
+  value       = local.merged_policy
+}

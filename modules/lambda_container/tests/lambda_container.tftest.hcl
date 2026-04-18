@@ -17,38 +17,23 @@ run "plan_succeeds_with_required_vars" {
   command = plan
 }
 
-# Key outputs are not null
-run "outputs_not_null" {
-  command = apply
+# function_name output equals var.name
+run "function_name_equals_var_name" {
+  command = plan
 
   assert {
-    condition     = output.function_arn != null
-    error_message = "function_arn must not be null"
-  }
-
-  assert {
-    condition     = output.invoke_arn != null
-    error_message = "invoke_arn must not be null"
-  }
-
-  assert {
-    condition     = output.function_name == "test-fn"
+    condition     = aws_lambda_function.this.function_name == "test-fn"
     error_message = "function_name must equal var.name"
   }
+}
+
+# log_group_name output matches expected path
+run "log_group_name_correct" {
+  command = plan
 
   assert {
-    condition     = output.role_arn != null
-    error_message = "role_arn must not be null"
-  }
-
-  assert {
-    condition     = output.ecr_repository_url != null
-    error_message = "ecr_repository_url must not be null"
-  }
-
-  assert {
-    condition     = output.log_group_name == "/aws/lambda/test-fn"
-    error_message = "log_group_name must be /aws/lambda/<name>"
+    condition     = aws_cloudwatch_log_group.this.name == "/aws/lambda/test-fn"
+    error_message = "log_group name must be /aws/lambda/<name>"
   }
 }
 

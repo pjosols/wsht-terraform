@@ -59,4 +59,5 @@ No modules.
 | <a name="output_bucket_arn"></a> [bucket\_arn](#output\_bucket\_arn) | ARN of the S3 bucket. |
 | <a name="output_bucket_domain_name"></a> [bucket\_domain\_name](#output\_bucket\_domain\_name) | Global domain name of the S3 bucket (for CloudFront logging config). |
 | <a name="output_bucket_id"></a> [bucket\_id](#output\_bucket\_id) | Name (ID) of the S3 bucket. |
+| <a name="output_bucket_policy_document"></a> [bucket\_policy\_document](#output\_bucket\_policy\_document) | The merged bucket policy JSON applied to the bucket (SSL-deny plus any caller-supplied statements). |
 | <a name="output_bucket_regional_domain_name"></a> [bucket\_regional\_domain\_name](#output\_bucket\_regional\_domain\_name) | Regional domain name of the S3 bucket (for CloudFront origins). |

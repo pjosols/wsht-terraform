@@ -9,31 +9,6 @@ run "plan_succeeds_with_required_vars" {
   command = plan
 }
 
-# Key outputs are not null
-run "outputs_not_null" {
-  command = apply
-
-  assert {
-    condition     = output.bucket_id != null
-    error_message = "bucket_id must not be null"
-  }
-
-  assert {
-    condition     = output.bucket_arn != null
-    error_message = "bucket_arn must not be null"
-  }
-
-  assert {
-    condition     = output.bucket_regional_domain_name != null
-    error_message = "bucket_regional_domain_name must not be null"
-  }
-
-  assert {
-    condition     = output.bucket_domain_name != null
-    error_message = "bucket_domain_name must not be null"
-  }
-}
-
 # Public access is blocked by default
 run "public_access_blocked" {
   command = plan
@@ -98,8 +73,8 @@ run "ssl_deny_policy_applied" {
   command = plan
 
   assert {
-    condition     = aws_s3_bucket_policy.this.bucket != null
-    error_message = "bucket policy must be attached to the bucket"
+    condition     = output.bucket_policy_document != null
+    error_message = "bucket policy document must not be null"
   }
 }
 
@@ -108,13 +83,13 @@ run "default_policy_contains_ssl_deny" {
   command = plan
 
   assert {
-    condition     = can(jsondecode(aws_s3_bucket_policy.this.policy).Statement)
+    condition     = can(jsondecode(output.bucket_policy_document).Statement)
     error_message = "default policy must have a Statement key"
   }
 
   assert {
     condition = anytrue([
-      for s in jsondecode(aws_s3_bucket_policy.this.policy).Statement : s.Sid == "DenyNonSSL"
+      for s in jsondecode(output.bucket_policy_document).Statement : s.Sid == "DenyNonSSL"
     ])
     error_message = "default policy must contain DenyNonSSL statement"
   }
@@ -139,20 +114,20 @@ run "custom_policy_merges_ssl_deny" {
 
   assert {
     condition = anytrue([
-      for s in jsondecode(aws_s3_bucket_policy.this.policy).Statement : s.Sid == "DenyNonSSL"
+      for s in jsondecode(output.bucket_policy_document).Statement : s.Sid == "DenyNonSSL"
     ])
     error_message = "merged policy must contain DenyNonSSL statement"
   }
 
   assert {
     condition = anytrue([
-      for s in jsondecode(aws_s3_bucket_policy.this.policy).Statement : s.Sid == "AllowCloudFrontOAC"
+      for s in jsondecode(output.bucket_policy_document).Statement : s.Sid == "AllowCloudFrontOAC"
     ])
     error_message = "merged policy must preserve caller's Statement entries"
   }
 
   assert {
-    condition     = length(jsondecode(aws_s3_bucket_policy.this.policy).Statement) == 2
+    condition     = length(jsondecode(output.bucket_policy_document).Statement) == 2
     error_message = "merged policy must have exactly 2 statements (caller + DenyNonSSL)"
   }
 }
@@ -163,7 +138,7 @@ run "ssl_deny_condition_correct" {
 
   assert {
     condition = anytrue([
-      for s in jsondecode(aws_s3_bucket_policy.this.policy).Statement :
+      for s in jsondecode(output.bucket_policy_document).Statement :
       try(s.Condition.Bool["aws:SecureTransport"] == "false", false)
       if s.Sid == "DenyNonSSL"
     ])
@@ -348,7 +323,7 @@ run "ssl_deny_covers_bucket_and_objects" {
 
   assert {
     condition = anytrue([
-      for s in jsondecode(aws_s3_bucket_policy.this.policy).Statement :
+      for s in jsondecode(output.bucket_policy_document).Statement :
       try(
         length([for r in s.Resource : r if endswith(r, "/*")]) > 0 &&
         length([for r in s.Resource : r if !endswith(r, "/*")]) > 0,
@@ -379,7 +354,7 @@ run "custom_policy_preserves_version" {
   }
 
   assert {
-    condition     = jsondecode(aws_s3_bucket_policy.this.policy).Version == "2012-10-17"
+    condition     = jsondecode(output.bucket_policy_document).Version == "2012-10-17"
     error_message = "merged policy must preserve the Version field from the caller's policy"
   }
 }

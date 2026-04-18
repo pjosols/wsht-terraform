@@ -24,3 +24,26 @@ skip-check:
   # dynamic block. Checkov cannot statically resolve the locals map + dynamic block
   # pattern and incorrectly reports the rule group as absent.
   - CKV_AWS_192
+  # CKV_AWS_310: CloudFront origin failover is optional — callers configure it via
+  # failover_origin variable. Not every distribution needs a failover origin group.
+  - CKV_AWS_310
+  # CKV_AWS_338: Lambda log group retention defaults to 30 days. Caller-controlled
+  # via log_retention_days variable. Inline checkov:skip comment on the resource.
+  - CKV_AWS_338
+  # CKV_AWS_272: Code signing is not supported for container-image Lambda functions
+  # (package_type = "Image"). Inline checkov:skip comment on the resource.
+  - CKV_AWS_272
+  # CKV2_AWS_31: WAF logging requires a Kinesis Firehose or CloudWatch log group
+  # owned outside the WAF module. Cross-resource check cannot be satisfied within
+  # the module boundary — caller wires logging separately.
+  - CKV2_AWS_31
+  # CKV2_AWS_32: CloudFront module accepts response_headers_policy_id as a variable.
+  # Checkov cannot statically resolve the variable reference and flags it as missing.
+  - CKV2_AWS_32
+  # CKV_AWS_144: S3 cross-region replication is not required for every bucket.
+  # Callers enable CRR at the application layer when needed.
+  - CKV_AWS_144
+  # CKV2_AWS_47: Cross-resource check expects WAF Web ACL with Log4j protection
+  # attached to CloudFront. The WAF module includes AWSManagedRulesKnownBadInputsRuleSet
+  # but Checkov cannot trace the web_acl_id reference across modules.
+  - CKV2_AWS_47

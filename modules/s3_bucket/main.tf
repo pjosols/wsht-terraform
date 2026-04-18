@@ -44,14 +44,19 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 }
 
 locals {
+  # S3 ARNs are always arn:aws:s3:::<name> — no region or account ID.
+  # Computing from var.name (rather than aws_s3_bucket.this.arn) keeps
+  # merged_policy known at plan time, enabling plan-only test assertions.
+  bucket_arn = "arn:aws:s3:::${var.name}"
+
   ssl_deny_statement = {
     Sid       = "DenyNonSSL"
     Effect    = "Deny"
     Principal = "*"
     Action    = "s3:*"
     Resource = [
-      aws_s3_bucket.this.arn,
-      "${aws_s3_bucket.this.arn}/*",
+      local.bucket_arn,
+      "${local.bucket_arn}/*",
     ]
     Condition = {
       Bool = {
