@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Regression tests for .github/workflows/ci.yml
+# Verifies: trigger configuration, pinned action versions, terraform version pinning,
+# module matrix coverage (validate excludes cloudfront/waf; test includes all),
+# job dependencies, and presence of fmt/validate/test steps.
+
 set -uo pipefail
 
 CI=".github/workflows/ci.yml"
+[[ -f "$CI" ]] || { echo "Error: $CI not found"; exit 1; }
 PASS=0; FAIL=0
 
 assert() {
@@ -37,10 +42,17 @@ assert "setup-terraform pinned to v3"  grep -q "hashicorp/setup-terraform@v3" "$
 assert "terraform_version set"         grep -q "terraform_version:" "$CI"
 assert_not "terraform_version not open range" grep -qE "terraform_version:.*[~^>]" "$CI"
 
-# Matrix covers all 9 modules
-for mod in acm apigw cloudfront cognito kms lambda_container monitoring s3_bucket waf; do
-  assert "matrix includes $mod"        grep -q "$mod" "$CI"
+# Validate matrix covers 7 modules (cloudfront and waf skipped — provider alias incompatible with standalone validate)
+for mod in acm apigw cognito kms lambda_container monitoring s3_bucket; do
+  assert "validate matrix includes $mod"  grep -q "$mod" "$CI"
 done
+
+# cloudfront and waf must be in test matrix but NOT in validate module list
+# Parse the matrix lines directly — no line-count buffers needed
+assert "waf in test matrix"            bash -c "grep -E '^\s+module:' '$CI' | tail -1 | grep -q 'waf'"
+assert "cloudfront in test matrix"     bash -c "grep -E '^\s+module:' '$CI' | tail -1 | grep -q 'cloudfront'"
+assert_not "waf not in validate module list"        bash -c "grep -E '^\s+module:' '$CI' | head -1 | grep -q 'waf'"
+assert_not "cloudfront not in validate module list" bash -c "grep -E '^\s+module:' '$CI' | head -1 | grep -q 'cloudfront'"
 
 # Job dependency: test needs validate
 assert "test job depends on validate"  grep -q "needs: validate" "$CI"

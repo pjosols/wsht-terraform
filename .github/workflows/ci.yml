@@ -1,3 +1,9 @@
+# CI workflow: validate, test, and scan all Terraform modules.
+# Runs on push to main and all pull requests.
+# Validate job skips cloudfront and waf (provider alias incompatible with standalone validate).
+# Test job includes all modules using terraform test with mock providers.
+# Checkov scans all modules for security and best-practice violations.
+
 name: CI
 
 on:
@@ -12,7 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: [acm, apigw, cloudfront, cognito, kms, lambda_container, monitoring, s3_bucket, waf]
+        # cloudfront and waf declare configuration_aliases = [aws.us_east_1] and cannot
+        # be validated standalone — they are covered by terraform test via mock_provider.
+        module: [acm, apigw, cognito, kms, lambda_container, monitoring, s3_bucket]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
