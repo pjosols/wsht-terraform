@@ -2,7 +2,6 @@ module "waf" {
   source = "git::https://github.com/pjosols/wsht-terraform.git//modules/waf?ref=v1.0.0"
 
   providers = {
-    aws           = aws
     aws.us_east_1 = aws.us_east_1
   }
 
@@ -32,7 +31,6 @@ module "cloudfront" {
   source = "git::https://github.com/pjosols/wsht-terraform.git//modules/cloudfront?ref=v1.0.0"
 
   providers = {
-    aws           = aws
     aws.us_east_1 = aws.us_east_1
   }
 
