@@ -40,4 +40,3 @@ All modules include:
 - Architecture Decision Records (ADRs) in `docs/adr/` for non-obvious design choices
 
 See `docs/adr/README.md` for architectural decisions.
-ions.
