@@ -28,43 +28,76 @@ assert_not() {
   fi
 }
 
+# py DESCRIPTION PYTHON_EXPR — PYTHON_EXPR must raise on failure
+py() {
+  local desc="$1" expr="$2"
+  assert "$desc" python3 - "$CI" <<EOF
+import sys, yaml
+doc = yaml.safe_load(open(sys.argv[1]))
+on = doc[True]  # YAML 'on' parses as boolean True
+jobs = doc['jobs']
+$expr
+EOF
+}
+
 # Triggers
-assert "push trigger on main"          grep -q "branches: \[main\]" "$CI"
-assert "pull_request trigger present"  grep -q "pull_request:" "$CI"
+py "push trigger on main"         "assert 'main' in on['push']['branches']"
+py "pull_request trigger present" "assert 'pull_request' in on"
 
 # Pinned action versions (no floating tags)
-assert_not "checkout not unpinned"     grep -qE "actions/checkout@(main|master|latest)" "$CI"
+assert_not "checkout not unpinned"        grep -qE "actions/checkout@(main|master|latest)" "$CI"
 assert_not "setup-terraform not unpinned" grep -qE "hashicorp/setup-terraform@(main|master|latest)" "$CI"
-assert "checkout pinned to v4"         grep -q "actions/checkout@v4" "$CI"
-assert "setup-terraform pinned to v3"  grep -q "hashicorp/setup-terraform@v3" "$CI"
+assert "checkout pinned to v4"            grep -q "actions/checkout@v4" "$CI"
+assert "setup-terraform pinned to v3"     grep -q "hashicorp/setup-terraform@v3" "$CI"
 
 # Terraform version pinned
-assert "terraform_version set"         grep -q "terraform_version:" "$CI"
+py "terraform_version set" "
+steps = jobs['validate']['steps']
+tf = next(s for s in steps if s.get('with', {}).get('terraform_version'))
+assert tf['with']['terraform_version']
+"
 assert_not "terraform_version not open range" grep -qE "terraform_version:.*[~^>]" "$CI"
 
-# Validate matrix covers 7 modules (cloudfront and waf skipped — provider alias incompatible with standalone validate)
+# Validate matrix: 7 modules, no cloudfront/waf
 for mod in acm apigw cognito kms lambda_container monitoring s3_bucket; do
-  assert "validate matrix includes $mod"  grep -q "$mod" "$CI"
+  py "validate matrix includes $mod" "assert '$mod' in jobs['validate']['strategy']['matrix']['module']"
 done
+py "waf not in validate matrix"        "assert 'waf' not in jobs['validate']['strategy']['matrix']['module']"
+py "cloudfront not in validate matrix" "assert 'cloudfront' not in jobs['validate']['strategy']['matrix']['module']"
 
-# cloudfront and waf must be in test matrix but NOT in validate module list
-# Parse the matrix lines directly — no line-count buffers needed
-assert "waf in test matrix"            bash -c "grep -E '^\s+module:' '$CI' | tail -1 | grep -q 'waf'"
-assert "cloudfront in test matrix"     bash -c "grep -E '^\s+module:' '$CI' | tail -1 | grep -q 'cloudfront'"
-assert_not "waf not in validate module list"        bash -c "grep -E '^\s+module:' '$CI' | head -1 | grep -q 'waf'"
-assert_not "cloudfront not in validate module list" bash -c "grep -E '^\s+module:' '$CI' | head -1 | grep -q 'cloudfront'"
+# Test matrix: includes cloudfront and waf
+py "waf in test matrix"        "assert 'waf' in jobs['test']['strategy']['matrix']['module']"
+py "cloudfront in test matrix" "assert 'cloudfront' in jobs['test']['strategy']['matrix']['module']"
 
-# Job dependency: test needs validate
-assert "test job depends on validate"  grep -q "needs: validate" "$CI"
+# Job dependencies
+py "test job depends on validate" "
+needs = jobs['test']['needs']
+assert needs == 'validate' or 'validate' in needs
+"
+py "checkov job exists"          "assert 'checkov' in jobs"
+py "checkov depends on validate" "
+needs = jobs['checkov']['needs']
+assert needs == 'validate' or 'validate' in needs
+"
+py "checkov uses .checkov.yaml" "
+steps = jobs['checkov']['steps']
+cfg = next(s['with']['config_file'] for s in steps if s.get('with', {}).get('config_file'))
+assert cfg == '.checkov.yaml'
+"
 
-# fmt check present
-assert "fmt -check step present"       grep -q "terraform fmt -check" "$CI"
-
-# validate step present
-assert "terraform validate step"       grep -q "terraform validate" "$CI"
-
-# test step present
-assert "terraform test step"           grep -q "terraform test" "$CI"
+# Step presence
+py "fmt -check step present" "
+steps = jobs['validate']['steps']
+assert any('fmt -check' in s.get('run', '') for s in steps)
+"
+py "terraform validate step" "
+steps = jobs['validate']['steps']
+assert any(s.get('run', '').strip() == 'terraform validate' for s in steps)
+"
+py "terraform test step" "
+steps = jobs['test']['steps']
+assert any(s.get('run', '').strip() == 'terraform test' for s in steps)
+"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
