@@ -14,6 +14,9 @@ resource "aws_organizations_account" "this" {
 
   lifecycle {
     prevent_destroy = true
+    # iam_user_access_to_billing is write-once at account creation; AWS ignores
+    # updates. Ignore to prevent spurious destroy+recreate on imported accounts.
+    ignore_changes = [iam_user_access_to_billing]
   }
 }
 
