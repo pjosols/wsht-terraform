@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-20
+
+### Added
+- `modules/tfstate_backend`: S3 + DynamoDB for Terraform remote state with encryption and versioning
+- `modules/org_account`: AWS Organizations member account with IAM Identity Center SSO assignments
+
 ## [1.0.0] - 2026-04-18
 
 ### Added

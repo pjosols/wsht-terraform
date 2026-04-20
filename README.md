@@ -15,6 +15,8 @@ Opinionated Terraform modules for AWS infrastructure. Encryption, least-privileg
 | `modules/acm` | ACM certificate with DNS validation. |
 | `modules/cognito` | Cognito user pool + client with password policy, MFA, token config. |
 | `modules/apigw` | HTTP API Gateway (v2) with Lambda proxy integration, JWT/REQUEST authorizers, CORS, access logging, throttling. |
+| `modules/tfstate_backend` | S3 + DynamoDB for Terraform remote state with encryption and versioning. |
+| `modules/org_account` | AWS Organizations member account with IAM Identity Center SSO assignments. |
 
 ## Usage
 
