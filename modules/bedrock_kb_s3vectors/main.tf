@@ -29,11 +29,12 @@ resource "aws_s3vectors_index" "this" {
   dimension          = var.vector_dimension
   distance_metric    = "cosine"
 
-  dynamic "metadata_configuration" {
-    for_each = length(var.non_filterable_metadata_keys) > 0 ? [1] : []
-    content {
-      non_filterable_metadata_keys = var.non_filterable_metadata_keys
-    }
+  metadata_configuration {
+    # AMAZON_BEDROCK_TEXT and AMAZON_BEDROCK_METADATA are required by Bedrock KB
+    non_filterable_metadata_keys = distinct(concat(
+      ["AMAZON_BEDROCK_TEXT", "AMAZON_BEDROCK_METADATA"],
+      var.non_filterable_metadata_keys
+    ))
   }
 }
 

@@ -14,7 +14,7 @@ variable "vector_dimension" {
 }
 
 variable "non_filterable_metadata_keys" {
-  description = "Metadata keys stored for display only — excluded from vector index filtering. All other metadata keys are filterable."
+  description = "Additional metadata keys stored for display only — excluded from vector index filtering. AMAZON_BEDROCK_TEXT and AMAZON_BEDROCK_METADATA are always included automatically as required by Bedrock KB."
   type        = list(string)
   default     = []
 }
