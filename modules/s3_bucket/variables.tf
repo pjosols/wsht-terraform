@@ -55,6 +55,12 @@ variable "notification_config" {
   default = null
 }
 
+variable "versioning_enabled" {
+  description = "Enable S3 bucket versioning. Set to false for write-once archives where versioning adds cost without benefit."
+  type        = bool
+  default     = true
+}
+
 variable "force_destroy" {
   description = "Allow Terraform to destroy the bucket even if it contains objects."
   type        = bool
