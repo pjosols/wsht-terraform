@@ -117,8 +117,16 @@ resource "aws_bedrockagent_data_source" "this" {
   }
 
   vector_ingestion_configuration {
+    # FIXED_SIZE so large emails are split into multiple embeddings instead of
+    # one — a single un-chunked marketing email exceeded Titan v2's ~8k-token
+    # limit and silently failed to index. 300 tokens / 20% overlap keeps each
+    # chunk well under the limit while preserving context across boundaries.
     chunking_configuration {
-      chunking_strategy = "NONE"
+      chunking_strategy = "FIXED_SIZE"
+      fixed_size_chunking_configuration {
+        max_tokens         = 300
+        overlap_percentage = 20
+      }
     }
   }
 }
