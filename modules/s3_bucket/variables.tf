@@ -61,6 +61,12 @@ variable "versioning_enabled" {
   default     = true
 }
 
+variable "noncurrent_version_expiration_days" {
+  description = "Days to retain noncurrent object versions before expiry. null = no rule (versions kept indefinitely). Only meaningful with versioning enabled; bounds the storage cost of versioning."
+  type        = number
+  default     = null
+}
+
 variable "force_destroy" {
   description = "Allow Terraform to destroy the bucket even if it contains objects."
   type        = bool

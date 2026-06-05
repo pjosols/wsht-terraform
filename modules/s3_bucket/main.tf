@@ -96,6 +96,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
       days_after_initiation = 7
     }
   }
+
+  # Bound the cost of versioning: expire noncurrent versions after N days.
+  dynamic "rule" {
+    for_each = var.noncurrent_version_expiration_days != null ? ["enabled"] : []
+    content {
+      id     = "expire-noncurrent-versions"
+      status = "Enabled"
+
+      filter {}
+
+      noncurrent_version_expiration {
+        noncurrent_days = var.noncurrent_version_expiration_days
+      }
+    }
+  }
 }
 
 resource "aws_s3_bucket_logging" "this" {
