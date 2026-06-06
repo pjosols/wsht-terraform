@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-06-06
+
+### Added
+- `secrets_vault`: plan-time precondition that the derived reader-role name fits IAM's 64-char limit, so an over-long `path_prefix`/`name` fails fast with a clear message instead of being rejected by AWS at apply
+
 ## [1.6.0] - 2026-06-06
 
 ### Changed

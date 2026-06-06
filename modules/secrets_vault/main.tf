@@ -96,6 +96,16 @@ resource "aws_iam_role" "reader" {
   assume_role_policy   = local.assume_role_policy
   max_session_duration = var.max_session_duration
   tags                 = local.tags
+
+  lifecycle {
+    # IAM role names cap at 64 chars. Fail at plan with a clear message rather than
+    # letting AWS reject the apply. (Variable validation can't see the derived local
+    # before Terraform 1.9, so guard it here.)
+    precondition {
+      condition     = length("${local.name}-secrets-reader") <= 64
+      error_message = "Derived role name \"${local.name}-secrets-reader\" is ${length("${local.name}-secrets-reader")} chars, over IAM's 64-char limit. Shorten path_prefix or pass a shorter name."
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "read" {

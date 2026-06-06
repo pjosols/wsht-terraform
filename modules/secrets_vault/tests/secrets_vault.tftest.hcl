@@ -186,6 +186,18 @@ run "rejects_path_prefix_with_trailing_slash" {
   expect_failures = [var.path_prefix]
 }
 
+# Precondition: derived role name must fit IAM's 64-char limit
+run "rejects_overlong_role_name" {
+  command = plan
+
+  variables {
+    # 60-char base -> "<60>-secrets-reader" = 75 chars, over the 64 limit
+    name = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+
+  expect_failures = [aws_iam_role.reader]
+}
+
 # Validation: trusted_principals must be non-empty
 run "rejects_empty_trusted_principals" {
   command = plan
