@@ -114,7 +114,7 @@ resource "aws_iam_instance_profile" "this" {
 
 resource "aws_security_group" "this" {
   name        = "${var.name}-origin"
-  description = "${var.name} origin — HTTPS from CloudFront only"
+  description = "${var.name} origin - HTTPS from CloudFront only"
   vpc_id      = var.vpc_id
   tags        = var.tags
 }
