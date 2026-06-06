@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-06
+
+### Changed
+- `secrets_vault`: derive the reader-role and inline-policy names from `path_prefix` (e.g. `appw/prod` → `appw-prod-secrets-reader`) so they can't drift from the prefix or collide across `(app, env)` in a single vault account. `name` is now an optional override of the derived base (was required). `App` and `Environment` tags are derived from the `<app>/<env>` segments (Environment omitted when there's no env segment)
+- `examples/secrets-cross-account`: drop the explicit `name` on the vault instances and rely on derivation
+
+Backward compatible: callers still passing `name` keep the same role name (no replacement). Omitting `name` uses the derived name — if a previously-deployed role used a `name` that differs from the derived slug, omitting it renames (replaces) the IAM role.
+
 ## [1.5.1] - 2026-06-06
 
 ### Changed

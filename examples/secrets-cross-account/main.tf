@@ -7,9 +7,9 @@
 
 # --- Vault account: App W, prod ---
 module "appw_prod_vault" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_vault?ref=v1.5.1"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_vault?ref=v1.6.0"
 
-  name        = "appw-prod"
+  # Role name derives from path_prefix -> "appw-prod-secrets-reader" (no `name` needed).
   path_prefix = "appw/prod"
 
   trusted_principals = ["arn:aws:iam::${var.prod_account_id}:root"]
@@ -24,9 +24,9 @@ module "appw_prod_vault" {
 
 # --- Vault account: App W, staging ---
 module "appw_staging_vault" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_vault?ref=v1.5.1"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_vault?ref=v1.6.0"
 
-  name        = "appw-staging"
+  # Role name derives from path_prefix -> "appw-staging-secrets-reader".
   path_prefix = "appw/staging"
 
   trusted_principals = ["arn:aws:iam::${var.staging_account_id}:root"]
@@ -41,7 +41,7 @@ module "appw_staging_vault" {
 
 # --- App W prod account: let the workload assume the prod reader role ---
 module "appw_prod_access" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_consumer?ref=v1.5.1"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/secrets_consumer?ref=v1.6.0"
 
   providers = {
     aws = aws.app

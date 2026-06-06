@@ -25,6 +25,20 @@ data "aws_region" "current" {}
 data "aws_partition" "current" {}
 
 locals {
+  # Resource-name base: derived from path_prefix ("appw/prod" -> "appw-prod") unless
+  # the caller overrides it. Names the reader role and its inline policy, so they can
+  # never drift from the prefix. App/Environment come from the "<app>/<env>" segments
+  # for clean cost-allocation tags (Environment omitted when there's no env segment).
+  name = coalesce(var.name, replace(var.path_prefix, "/", "-"))
+  app  = split("/", var.path_prefix)[0]
+  env  = try(split("/", var.path_prefix)[1], null)
+
+  tags = merge(
+    var.tags,
+    { App = local.app },
+    local.env == null ? {} : { Environment = local.env },
+  )
+
   # Secrets Manager ARNs carry a random 6-char suffix, so scope by name prefix with
   # a trailing wildcard: every secret under "<path_prefix>/" matches, including ones
   # created later out-of-band.
@@ -72,20 +86,20 @@ resource "aws_secretsmanager_secret" "this" {
   name                    = "${var.path_prefix}/${each.key}"
   description             = each.value.description
   recovery_window_in_days = var.recovery_window_days
-  tags                    = merge(var.tags, { App = var.name })
+  tags                    = local.tags
 }
 
 # --- Cross-account reader role (one per app) ---
 
 resource "aws_iam_role" "reader" {
-  name                 = "${var.name}-secrets-reader"
+  name                 = "${local.name}-secrets-reader"
   assume_role_policy   = local.assume_role_policy
   max_session_duration = var.max_session_duration
-  tags                 = merge(var.tags, { App = var.name })
+  tags                 = local.tags
 }
 
 resource "aws_iam_role_policy" "read" {
-  name   = "${var.name}-secrets-read"
+  name   = "${local.name}-secrets-read"
   role   = aws_iam_role.reader.id
   policy = local.read_policy
 }

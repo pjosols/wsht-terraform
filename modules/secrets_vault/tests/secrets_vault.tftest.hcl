@@ -1,7 +1,6 @@
 mock_provider "aws" {}
 
 variables {
-  name               = "myapp"
   path_prefix        = "appw/prod"
   trusted_principals = ["arn:aws:iam::222222222222:root"]
 }
@@ -11,13 +10,71 @@ run "plan_succeeds_with_required_vars" {
   command = plan
 }
 
-# Reader role is named per-app: <name>-secrets-reader
-run "reader_role_named_per_app" {
+# Reader role + policy names are derived from path_prefix when name is unset
+run "names_derived_from_path_prefix" {
   command = plan
 
   assert {
-    condition     = aws_iam_role.reader.name == "myapp-secrets-reader"
-    error_message = "reader role must be named <name>-secrets-reader"
+    condition     = aws_iam_role.reader.name == "appw-prod-secrets-reader"
+    error_message = "reader role name must derive from path_prefix (appw/prod -> appw-prod-secrets-reader)"
+  }
+
+  assert {
+    condition     = aws_iam_role_policy.read.name == "appw-prod-secrets-read"
+    error_message = "inline policy name must derive from path_prefix (appw-prod-secrets-read)"
+  }
+}
+
+# An explicit name overrides the derived base
+run "name_override_wins" {
+  command = plan
+
+  variables {
+    name = "custom"
+  }
+
+  assert {
+    condition     = aws_iam_role.reader.name == "custom-secrets-reader"
+    error_message = "explicit name must override the derived base"
+  }
+
+  assert {
+    condition     = aws_iam_role_policy.read.name == "custom-secrets-read"
+    error_message = "explicit name must drive the inline policy name too"
+  }
+}
+
+# App/Environment tags are derived from the <app>/<env> segments
+run "tags_derived_from_segments" {
+  command = plan
+
+  assert {
+    condition     = aws_iam_role.reader.tags["App"] == "appw"
+    error_message = "App tag must be the first path segment (appw)"
+  }
+
+  assert {
+    condition     = aws_iam_role.reader.tags["Environment"] == "prod"
+    error_message = "Environment tag must be the second path segment (prod)"
+  }
+}
+
+# No Environment tag when the prefix has no env segment
+run "no_environment_tag_without_env_segment" {
+  command = plan
+
+  variables {
+    path_prefix = "appw"
+  }
+
+  assert {
+    condition     = aws_iam_role.reader.name == "appw-secrets-reader"
+    error_message = "env-less prefix must still derive a role name"
+  }
+
+  assert {
+    condition     = !contains(keys(aws_iam_role.reader.tags), "Environment")
+    error_message = "Environment tag must be absent when the prefix has no env segment"
   }
 }
 

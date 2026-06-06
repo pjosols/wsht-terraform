@@ -1,6 +1,7 @@
 variable "name" {
-  description = "App/service name. Used to name the reader role (\"<name>-secrets-reader\") and to tag resources (App = name)."
+  description = "Override the derived resource-name base. Defaults to path_prefix with slashes replaced by dashes (e.g. \"appw/prod\" -> \"appw-prod\"). Names the reader role (\"<base>-secrets-reader\") and its inline policy (\"<base>-secrets-read\"). Leave null to derive it so the names can't drift from the prefix; set it only when you need a specific role name."
   type        = string
+  default     = null
 }
 
 variable "path_prefix" {
