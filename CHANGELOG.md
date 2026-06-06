@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-06
+
+### Added
+- `modules/secrets_vault`: per-app Secrets Manager containers and a cross-account reader IAM role scoped to the app's path prefix, for centralized secrets in a vault account. Manages containers and IAM only — never secret values — so plaintext never lands in state
+- `modules/secrets_consumer`: app-account IAM policy granting the workload role `sts:AssumeRole` on the vault reader role(s)
+- `examples/secrets-cross-account`: wires `secrets_vault` + `secrets_consumer` across two accounts (Cloudflare token for "App W" as the worked example)
+
+## [1.4.1] - 2026-06-06
+
+### Fixed
+- `app_server`: ASCII-only security group description (AWS rejects non-ASCII `GroupDescription`)
+
+## [1.4.0] - 2026-06-06
+
+### Added
+- `modules/app_server`: public-subnet EC2 CloudFront custom origin (Docker, SSM, no NAT gateway)
+
+## [1.3.0] - 2026-06-04
+
+### Added
+- `modules/s3_vectors`: S3 Vectors vector bucket and index
+
+### Changed
+- `s3_bucket`: noncurrent-version expiration support
+
+## [1.2.0] - 2026-06-01
+
+### Added
+- `modules/bedrock_kb_s3vectors`: S3 Vectors-backed Bedrock Knowledge Base with a CUSTOM data source for direct ingestion; FIXED_SIZE chunking (300 tokens, 20% overlap)
+- `modules/ses_inbound`: SES domain identity and receipt rule set for S3 inbound email
+- `s3_bucket`: `versioning_enabled` variable (default true; suspends versioning when false)
+
+## [1.1.1] - 2026-04-20
+
+### Fixed
+- `org_account`: ignore `iam_user_access_to_billing` changes (write-once at account creation; prevents spurious diffs on imported accounts)
+
 ## [1.1.0] - 2026-04-20
 
 ### Added

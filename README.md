@@ -17,6 +17,8 @@ Opinionated Terraform modules for AWS infrastructure. Encryption, least-privileg
 | `modules/apigw` | HTTP API Gateway (v2) with Lambda proxy integration, JWT/REQUEST authorizers, CORS, access logging, throttling. |
 | `modules/tfstate_backend` | S3 + DynamoDB for Terraform remote state with encryption and versioning. |
 | `modules/org_account` | AWS Organizations member account with IAM Identity Center SSO assignments. |
+| `modules/secrets_vault` | Vault-account side of centralized secrets: per-app Secrets Manager containers + a cross-account reader IAM role scoped to that app's path prefix. |
+| `modules/secrets_consumer` | App-account side of centralized secrets: IAM policy granting the workload role `sts:AssumeRole` on the vault reader role(s). |
 
 ## Usage
 
