@@ -1,9 +1,9 @@
 /**
  * Per-app secrets footprint in a central "vault" AWS account.
  *
- * Instantiate once per app/service. Creates a dedicated cross-account reader IAM
- * role scoped to that app's secrets only (by path prefix, e.g. prod/myapp/*), plus
- * — optionally — the Secrets Manager secret containers themselves.
+ * Instantiate once per (app, env). Creates a dedicated cross-account reader IAM
+ * role scoped to that app's secrets only (by path prefix, convention "<app>/<env>",
+ * e.g. appw/prod/*), plus — optionally — the Secrets Manager secret containers.
  *
  * App accounts (B, C, D) assume *their own* role (not a shared one) to fetch secrets.
  * The role's permission policy grants secretsmanager:GetSecretValue on

@@ -1,8 +1,8 @@
 Per-app secrets footprint in a central "vault" AWS account.
 
-Instantiate once per app/service. Creates a dedicated cross-account reader IAM
-role scoped to that app's secrets only (by path prefix, e.g. prod/myapp/*), plus
-— optionally — the Secrets Manager secret containers themselves.
+Instantiate once per (app, env). Creates a dedicated cross-account reader IAM
+role scoped to that app's secrets only (by path prefix, convention "<app>/<env>",
+e.g. appw/prod/*), plus — optionally — the Secrets Manager secret containers.
 
 App accounts (B, C, D) assume *their own* role (not a shared one) to fetch secrets.
 The role's permission policy grants secretsmanager:GetSecretValue on
@@ -53,7 +53,7 @@ No modules.
 | <a name="input_external_id"></a> [external\_id](#input\_external\_id) | If set, assuming the reader role requires this sts:ExternalId (confused-deputy mitigation). The consumer must pass the same value at AssumeRole time. | `string` | `null` | no |
 | <a name="input_max_session_duration"></a> [max\_session\_duration](#input\_max\_session\_duration) | Maximum session duration in seconds for the reader role. 3600–43200. | `number` | `3600` | no |
 | <a name="input_name"></a> [name](#input\_name) | App/service name. Used to name the reader role ("<name>-secrets-reader") and to tag resources (App = name). | `string` | n/a | yes |
-| <a name="input_path_prefix"></a> [path\_prefix](#input\_path\_prefix) | Path prefix under which this app's secrets live, e.g. "prod/myapp". The reader role is scoped to "<path\_prefix>/*" so it can only read this app's secrets. No leading or trailing slash. | `string` | n/a | yes |
+| <a name="input_path_prefix"></a> [path\_prefix](#input\_path\_prefix) | Path prefix under which this app's secrets live. House convention is "<app>/<env>", e.g. "appw/prod" — app-first, so an app's secrets group together and an app-wide grant is a single "<app>/*" wildcard. The reader role is scoped to "<path\_prefix>/*", so instantiate once per (app, env) — each (app, env) gets its own role and trusted principals, keeping prod secrets unreadable by a staging role. Drop the env segment (e.g. "appw") for single-account setups. No leading or trailing slash. | `string` | n/a | yes |
 | <a name="input_recovery_window_days"></a> [recovery\_window\_days](#input\_recovery\_window\_days) | Days Secrets Manager retains a deleted secret before permanent deletion. 0 forces immediate deletion; otherwise 7–30. | `number` | `30` | no |
 | <a name="input_secrets"></a> [secrets](#input\_secrets) | Secret containers to create under path\_prefix. Map key is the short name (full name becomes "<path\_prefix>/<key>"). This module never manages secret *values* — only the empty containers — so plaintext never lands in Terraform state. Set values out-of-band with `aws secretsmanager put-secret-value`. | <pre>map(object({<br/>    description = optional(string)<br/>  }))</pre> | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources. | `map(string)` | `{}` | no |

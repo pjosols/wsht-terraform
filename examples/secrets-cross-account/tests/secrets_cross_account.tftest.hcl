@@ -12,29 +12,30 @@ mock_provider "aws" {
   }
 }
 
-# The composition applies cleanly and exports the reader role ARN (computed, so
+# The composition applies cleanly and exports both reader role ARNs (computed, so
 # resolved on apply under the mock provider).
 run "apply_succeeds_with_defaults" {
   command = apply
 
   assert {
-    condition     = output.reader_role_arn != null
-    error_message = "reader role ARN must be exported"
+    condition     = output.prod_reader_role_arn != null && output.staging_reader_role_arn != null
+    error_message = "prod and staging reader role ARNs must be exported"
   }
 }
 
-# Custom account and workload role are accepted.
+# Custom accounts and workload role are accepted.
 run "plan_succeeds_with_custom_values" {
   command = plan
 
   variables {
-    app_account_id         = "333333333333"
+    prod_account_id        = "444444444444"
+    staging_account_id     = "555555555555"
     app_workload_role_name = "appw-lambda"
     tags                   = { project = "appw" }
   }
 
   assert {
-    condition     = var.app_account_id == "333333333333"
-    error_message = "app_account_id must accept a custom value"
+    condition     = var.prod_account_id == "444444444444"
+    error_message = "prod_account_id must accept a custom value"
   }
 }

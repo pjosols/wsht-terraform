@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-06-06
+
+### Changed
+- `secrets_vault`: document the app-first `<app>/<env>` path-prefix convention (e.g. `appw/prod`) — app's secrets group together and an app-wide grant is a single `appw/*` wildcard. No logic change; `path_prefix` remains free-form
+- `examples/secrets-cross-account`: switch to the `<app>/<env>` convention and show the multi-env-per-app pattern (separate `appw/prod` and `appw/staging` vault instances, each with its own reader role and trusted principals)
+
 ## [1.5.0] - 2026-06-06
 
 ### Added

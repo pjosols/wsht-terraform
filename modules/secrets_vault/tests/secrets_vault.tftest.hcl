@@ -2,7 +2,7 @@ mock_provider "aws" {}
 
 variables {
   name               = "myapp"
-  path_prefix        = "prod/myapp"
+  path_prefix        = "appw/prod"
   trusted_principals = ["arn:aws:iam::222222222222:root"]
 }
 
@@ -26,12 +26,12 @@ run "read_policy_scoped_to_path_prefix" {
   command = plan
 
   assert {
-    condition     = endswith(output.secret_arn_wildcard, "secret:prod/myapp/*")
+    condition     = endswith(output.secret_arn_wildcard, "secret:appw/prod/*")
     error_message = "reader role must be scoped to <path_prefix>/* secrets"
   }
 
   assert {
-    condition     = endswith(jsondecode(aws_iam_role_policy.read.policy).Statement[0].Resource, "secret:prod/myapp/*")
+    condition     = endswith(jsondecode(aws_iam_role_policy.read.policy).Statement[0].Resource, "secret:appw/prod/*")
     error_message = "read policy Resource must be the <path_prefix>/* wildcard"
   }
 
@@ -108,7 +108,7 @@ run "secrets_created_under_path_prefix" {
   }
 
   assert {
-    condition     = aws_secretsmanager_secret.this["db-password"].name == "prod/myapp/db-password"
+    condition     = aws_secretsmanager_secret.this["db-password"].name == "appw/prod/db-password"
     error_message = "secret name must be <path_prefix>/<key>"
   }
 
@@ -123,7 +123,7 @@ run "rejects_path_prefix_with_trailing_slash" {
   command = plan
 
   variables {
-    path_prefix = "prod/myapp/"
+    path_prefix = "appw/prod/"
   }
 
   expect_failures = [var.path_prefix]

@@ -4,12 +4,12 @@ variable "name" {
 }
 
 variable "path_prefix" {
-  description = "Path prefix under which this app's secrets live, e.g. \"prod/myapp\". The reader role is scoped to \"<path_prefix>/*\" so it can only read this app's secrets. No leading or trailing slash."
+  description = "Path prefix under which this app's secrets live. House convention is \"<app>/<env>\", e.g. \"appw/prod\" — app-first, so an app's secrets group together and an app-wide grant is a single \"<app>/*\" wildcard. The reader role is scoped to \"<path_prefix>/*\", so instantiate once per (app, env) — each (app, env) gets its own role and trusted principals, keeping prod secrets unreadable by a staging role. Drop the env segment (e.g. \"appw\") for single-account setups. No leading or trailing slash."
   type        = string
 
   validation {
     condition     = length(var.path_prefix) > 0 && !startswith(var.path_prefix, "/") && !endswith(var.path_prefix, "/")
-    error_message = "path_prefix must be non-empty with no leading or trailing slash (e.g. \"prod/myapp\")."
+    error_message = "path_prefix must be non-empty with no leading or trailing slash (e.g. \"appw/prod\")."
   }
 }
 
