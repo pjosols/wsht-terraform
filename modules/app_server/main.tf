@@ -162,6 +162,16 @@ resource "aws_instance" "this" {
   tags = merge(var.tags, { Name = var.name })
 }
 
+# Stable public IP for the origin. The origin DNS record (e.g. origin.example.com) points
+# here, so it must survive a stop/start (the auto-assigned public IP would not). Both app_server
+# consumers want this, so the module owns it; opt out with assign_elastic_ip = false.
+resource "aws_eip" "this" {
+  count    = var.assign_elastic_ip ? 1 : 0
+  instance = aws_instance.this.id
+  domain   = "vpc"
+  tags     = merge(var.tags, { Name = var.name })
+}
+
 locals {
   # Bring up Docker + the compose plugin; SSM agent is preinstalled on AL2023. The actual
   # app deploy (copy compose/Caddyfile, docker compose up) is driven by CI over SSM.

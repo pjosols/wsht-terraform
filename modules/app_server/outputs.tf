@@ -4,8 +4,8 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  description = "Public IPv4 — point the origin DNS record (e.g. origin.example.com) at this."
-  value       = aws_instance.this.public_ip
+  description = "Public IPv4 — point the origin DNS record (e.g. origin.example.com) at this. The Elastic IP when assign_elastic_ip = true (default), else the instance's auto-assigned IP."
+  value       = var.assign_elastic_ip ? aws_eip.this[0].public_ip : aws_instance.this.public_ip
 }
 
 output "private_ip" {

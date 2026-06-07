@@ -43,6 +43,12 @@ variable "ecr_repository_arns" {
   default     = []
 }
 
+variable "assign_elastic_ip" {
+  description = "Allocate + associate an Elastic IP for a stable origin address (origin DNS points at it, survives stop/start). Set false to use the auto-assigned public IP."
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)
