@@ -374,3 +374,34 @@ run "failover_custom_status_codes" {
     error_message = "failover_status_codes must be applied to the origin group failover criteria"
   }
 }
+
+# ── extra_origins custom_headers land on the distribution origin ─────────────
+
+run "extra_origin_custom_headers_set" {
+  command = apply
+
+  variables {
+    name               = "test-cf-headers"
+    origin_domain_name = "my-bucket.s3.us-east-1.amazonaws.com"
+    extra_origins = [{
+      domain_name = "origin.example.com"
+      origin_id   = "ec2-api"
+      custom_origin_config = {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "https-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+      custom_headers = [{ name = "X-Origin-Verify", value = "test-secret" }]
+    }]
+  }
+
+  assert {
+    condition = anytrue([
+      for o in aws_cloudfront_distribution.this.origin :
+      length([for h in o.custom_header : h if h.name == "X-Origin-Verify" && h.value == "test-secret"]) == 1
+      if o.origin_id == "ec2-api"
+    ])
+    error_message = "extra origin must carry the X-Origin-Verify custom header"
+  }
+}

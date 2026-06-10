@@ -85,6 +85,12 @@ variable "extra_origins" {
       origin_protocol_policy = string
       origin_ssl_protocols   = list(string)
     }))
+    # Headers CloudFront adds on every origin request — e.g. a shared-secret
+    # X-Origin-Verify so the origin can reject traffic that bypasses CloudFront.
+    custom_headers = optional(list(object({
+      name  = string
+      value = string
+    })), [])
   }))
   default = []
 }

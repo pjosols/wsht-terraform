@@ -112,6 +112,14 @@ resource "aws_cloudfront_distribution" "this" {
       origin_id                = origin.value.origin_id
       origin_access_control_id = origin.value.origin_access_control_id
 
+      dynamic "custom_header" {
+        for_each = origin.value.custom_headers
+        content {
+          name  = custom_header.value.name
+          value = custom_header.value.value
+        }
+      }
+
       dynamic "s3_origin_config" {
         for_each = origin.value.s3_origin_access_identity != null ? [1] : []
         content {
