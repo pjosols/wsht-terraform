@@ -138,7 +138,7 @@ resource "aws_vpc_security_group_egress_rule" "all" {
 # --- Instance ---
 
 resource "aws_instance" "this" {
-  ami                         = data.aws_ssm_parameter.al2023.value
+  ami                         = var.ami != null ? var.ami : data.aws_ssm_parameter.al2023.value
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   associate_public_ip_address = true
@@ -160,6 +160,18 @@ resource "aws_instance" "this" {
   }
 
   tags = merge(var.tags, { Name = var.name })
+
+  lifecycle {
+    # The AL2023 SSM pointer moves every time AWS publishes a new image, so without this an
+    # apply for something entirely unrelated destroys and recreates a running instance. The
+    # plan gives you no warning beyond `replace_paths: [["ami"]]` buried in the diff — seniq
+    # hit exactly that on 2026-07-26 while applying an S3 setting.
+    #
+    # Replacing the box is now always deliberate:
+    #   terraform apply -replace=module.<name>.aws_instance.this
+    # Pin var.ami at the same time to choose the image; leave it null to take the latest.
+    ignore_changes = [ami]
+  }
 }
 
 # Stable public IP for the origin. The origin DNS record (e.g. origin.example.com) points

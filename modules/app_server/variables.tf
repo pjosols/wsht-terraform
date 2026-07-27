@@ -13,6 +13,17 @@ variable "subnet_id" {
   type        = string
 }
 
+variable "ami" {
+  description = <<-EOT
+    AMI id for the instance. Defaults to the latest Amazon Linux 2023 arm64 image.
+
+    Set this to control exactly which image the instance is built from. Note that changing it
+    does not by itself replace a running instance — see the lifecycle block in main.tf.
+  EOT
+  type        = string
+  default     = null
+}
+
 variable "instance_type" {
   description = "EC2 instance type. Default is a small Graviton burstable; the workload is I/O-bound."
   type        = string

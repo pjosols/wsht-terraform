@@ -41,3 +41,20 @@ and use `https://origin.example.com` as a CloudFront custom origin (`origin_type
 
 See `variables.tf` and `outputs.tf`. Key outputs: `instance_id`, `public_ip`,
 `security_group_id`, `iam_role_name`.
+
+## Replacing the instance
+
+`ami` defaults to the latest Amazon Linux 2023 arm64 image, read from AWS's SSM pointer. That
+pointer moves whenever AWS publishes a new image, so the instance carries
+`lifecycle { ignore_changes = [ami] }`: an apply for something unrelated can never destroy and
+recreate a running box on its own.
+
+Moving to a newer image is therefore explicit:
+
+```
+terraform apply -replace=module.<name>.aws_instance.this
+```
+
+Set `ami` if you want to choose the image rather than take whatever is current at that moment.
+Leaving it null keeps the default. Because the instance is replaced, expect the usual
+consequences — a fresh box that your deploy must re-seed, and anything on local disk gone.
