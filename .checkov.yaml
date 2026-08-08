@@ -1,4 +1,25 @@
 skip-check:
+  # CKV_AWS_88: The app_server instance IS the public origin — CloudFront resolves the
+  # origin DNS record to its Elastic IP, so a public address is the module's purpose,
+  # not an oversight. Exposure is bounded by the security group, IMDSv2-only metadata,
+  # and the fact that nothing else routes to the box.
+  - CKV_AWS_88
+  # CKV_AWS_300: s3_bucket DOES set abort_incomplete_multipart_upload (7 days) as a
+  # static rule. Checkov's parser mangles the rule list when a `dynamic "rule"` block
+  # follows it (the noncurrent-version-expiration rule) and reads zero rules. Verified
+  # 2026-08-08: deleting the dynamic block alone flips this check to PASSED with the
+  # abort rule untouched. Same parser limitation as CKV_AWS_192 below.
+  - CKV_AWS_300
+  # CKV_AWS_149: Secret containers use the AWS-managed aws/secretsmanager key by
+  # default — free, and sufficient when every reader is in this account. Callers
+  # needing a cross-account kms:Decrypt grant pass a CMK via the kms_key_id variable.
+  # Checkov cannot tell a deliberate null default from an unset argument.
+  - CKV_AWS_149
+  # CKV2_AWS_57: Rotation needs a per-secret Lambda that knows how to roll that
+  # particular credential. secrets_vault creates empty containers and never manages
+  # values (plaintext must stay out of state), so it has nothing to rotate — rotation
+  # belongs with the caller that owns the credential.
+  - CKV2_AWS_57
   # CKV_AWS_356: KMS key policies use "resources = [\"*\"]" which AWS KMS interprets
   # as "this key only" — it is not a wildcard over all KMS keys. The key ARN is
   # unavailable at policy-document evaluation time (chicken-and-egg with key creation),
