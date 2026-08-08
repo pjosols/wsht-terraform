@@ -86,6 +86,7 @@ resource "aws_secretsmanager_secret" "this" {
   name                    = "${var.path_prefix}/${each.key}"
   description             = each.value.description
   recovery_window_in_days = var.recovery_window_days
+  kms_key_id              = var.kms_key_id
   tags                    = local.tags
 }
 

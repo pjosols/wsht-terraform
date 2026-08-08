@@ -60,6 +60,12 @@ variable "assign_elastic_ip" {
   default     = true
 }
 
+variable "detailed_monitoring" {
+  description = "Enable EC2 detailed (1-minute) CloudWatch metrics instead of the default 5-minute basic metrics. Billed per instance beyond the free tier — set false if the coarser interval is good enough."
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)

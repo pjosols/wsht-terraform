@@ -66,3 +66,29 @@ jobs:
           directory: modules
           config_file: .checkov.yaml
           framework: terraform
+
+  # The single required status check on main. Branch protection names contexts as
+  # literal strings, so requiring the matrix jobs directly means a new module's check
+  # is silently NOT required until someone remembers to add it — and a removed module
+  # blocks every PR forever waiting on a context that never reports. This job needs
+  # them all, so the matrix can change freely and protection keeps working.
+  #
+  # `needs` alone is not enough: a skipped or cancelled dependency leaves this job
+  # "successful" by default, which would hand main a green gate over work that never
+  # ran. Hence the explicit result check.
+  ci-passed:
+    name: CI passed
+    runs-on: ubuntu-latest
+    needs: [validate, test, checkov]
+    if: always()
+    steps:
+      - name: Verify every upstream job succeeded
+        run: |
+          results="validate=${{ needs.validate.result }} test=${{ needs.test.result }} checkov=${{ needs.checkov.result }}"
+          echo "$results"
+          case "$results" in
+            *failure*|*cancelled*|*skipped*)
+              echo "::error::One or more CI jobs did not succeed: $results"
+              exit 1
+              ;;
+          esac

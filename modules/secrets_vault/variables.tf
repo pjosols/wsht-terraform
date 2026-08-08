@@ -49,6 +49,12 @@ variable "secrets" {
   default = {}
 }
 
+variable "kms_key_id" {
+  description = "Customer-managed KMS key (ARN or ID) encrypting the secret containers. Null uses the AWS-managed aws/secretsmanager key, which is free but cannot be shared cross-account — supply a CMK when a reader in another account needs kms:Decrypt."
+  type        = string
+  default     = null
+}
+
 variable "recovery_window_days" {
   description = "Days Secrets Manager retains a deleted secret before permanent deletion. 0 forces immediate deletion; otherwise 7–30."
   type        = number

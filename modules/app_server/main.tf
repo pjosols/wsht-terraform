@@ -145,6 +145,8 @@ resource "aws_instance" "this" {
   iam_instance_profile        = aws_iam_instance_profile.this.name
   vpc_security_group_ids      = [aws_security_group.this.id]
   user_data                   = local.user_data
+  monitoring                  = var.detailed_monitoring
+  ebs_optimized               = true
 
   metadata_options {
     http_endpoint               = "enabled"
