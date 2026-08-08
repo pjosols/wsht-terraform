@@ -18,9 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # cloudfront and waf declare configuration_aliases = [aws.us_east_1] and cannot
-        # be validated standalone — they are covered by terraform test via mock_provider.
-        module: [acm, apigw, cognito, kms, lambda_container, monitoring, s3_bucket]
+        # Every module except cloudfront and waf, which declare
+        # configuration_aliases = [aws.us_east_1] and cannot be validated standalone —
+        # they are covered by terraform test via mock_provider.
+        module: [acm, apigw, app_server, bedrock_kb_s3vectors, cognito, kms, lambda_container,
+          monitoring, org_account, s3_bucket, s3_vectors, secrets_consumer, secrets_vault,
+          ses_inbound, tfstate_backend]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -42,7 +45,10 @@ jobs:
     needs: validate
     strategy:
       matrix:
-        module: [acm, apigw, cloudfront, cognito, kms, lambda_container, monitoring, s3_bucket, waf]
+        # Every module that has a tests/ directory. bedrock_kb_s3vectors, s3_vectors and
+        # ses_inbound have none yet, so they are validate-only until someone writes them.
+        module: [acm, apigw, app_server, cloudfront, cognito, kms, lambda_container, monitoring,
+          org_account, s3_bucket, secrets_consumer, secrets_vault, tfstate_backend, waf]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
