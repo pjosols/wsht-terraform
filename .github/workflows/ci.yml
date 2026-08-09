@@ -17,15 +17,23 @@ jobs:
     name: Validate (${{ matrix.module }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        # cloudfront and waf declare configuration_aliases = [aws.us_east_1] and cannot
-        # be validated standalone — they are covered by terraform test via mock_provider.
-        module: [acm, apigw, cognito, kms, lambda_container, monitoring, s3_bucket]
+        # Every module except cloudfront and waf, which declare
+        # configuration_aliases = [aws.us_east_1] and cannot be validated standalone —
+        # they are covered by terraform test via mock_provider.
+        module: [acm, apigw, app_server, bedrock_kb_s3vectors, cognito, kms, lambda_container,
+          monitoring, org_account, s3_bucket, s3_vectors, secrets_consumer, secrets_vault,
+          ses_inbound, tfstate_backend]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.9.8"
+          # Matches the version maintainers run locally. The old 1.9.8 pin meant a
+          # locally-green test could still fail here: on 1.9.8 terraform test cannot
+          # tear down a mock_provider resource created by an apply-mode run, so
+          # org_account failed its file with every assertion passing. Fixed upstream.
+          terraform_version: "1.15.5"
       - name: fmt check
         run: terraform fmt -check -recursive
         working-directory: modules/${{ matrix.module }}
@@ -41,13 +49,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     strategy:
+      fail-fast: false
       matrix:
-        module: [acm, apigw, cloudfront, cognito, kms, lambda_container, monitoring, s3_bucket, waf]
+        # Every module that has a tests/ directory. bedrock_kb_s3vectors, s3_vectors and
+        # ses_inbound have none yet, so they are validate-only until someone writes them.
+        module: [acm, apigw, app_server, cloudfront, cognito, kms, lambda_container, monitoring,
+          org_account, s3_bucket, secrets_consumer, secrets_vault, tfstate_backend, waf]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.9.8"
+          terraform_version: "1.15.5"
       - name: init
         run: terraform init -backend=false
         working-directory: modules/${{ matrix.module }}
