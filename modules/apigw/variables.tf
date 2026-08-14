@@ -20,14 +20,28 @@ variable "lambda_function_name" {
 }
 
 variable "routes" {
-  description = "List of routes to create. Each route has method, path, authorizer (NONE or a key from authorizer_configs), and optional per-route throttle overrides."
+  description = "List of routes to create. Each route has method, path, authorizer (NONE or a key from authorizer_configs), optional required scopes, and optional per-route throttle overrides."
   type = list(object({
-    method                 = string
-    path                   = string
-    authorizer             = optional(string, "NONE")
+    method     = string
+    path       = string
+    authorizer = optional(string, "NONE")
+    # Scopes the caller's token must carry. JWT authorizers only. API Gateway
+    # reads the `scope`/`scp` claim and requires AT LEAST ONE of these — the
+    # match is any, not all, so listing several widens access rather than
+    # narrowing it. Empty (the default) means the authorizer checks issuer,
+    # audience and signature and nothing about who the caller is.
+    scopes                 = optional(list(string), [])
     throttling_rate_limit  = optional(number)
     throttling_burst_limit = optional(number)
   }))
+
+  validation {
+    condition = alltrue([
+      for r in var.routes :
+      length(coalesce(r.scopes, [])) == 0 || !(r.authorizer == null || r.authorizer == "NONE")
+    ])
+    error_message = "A route with `scopes` must name an authorizer. API Gateway ignores scopes on an unauthorized route, so the config would read as enforcement that is not happening."
+  }
 }
 
 variable "authorizer_configs" {

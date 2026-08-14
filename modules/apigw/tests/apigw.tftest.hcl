@@ -358,3 +358,88 @@ run "throttling_rate_limit_rejects_negative" {
   }
   expect_failures = [var.throttling_rate_limit]
 }
+
+# A JWT route carries the scopes it was given. API Gateway then requires the
+# token's `scope`/`scp` claim to contain at least one of them.
+run "jwt_route_authorization_scopes" {
+  command = plan
+  variables {
+    authorizer_configs = {
+      oidc = {
+        type             = "JWT"
+        name             = "oidc"
+        identity_sources = ["$request.header.Authorization"]
+        jwt = {
+          audience = ["https://example.test/api"]
+          issuer   = "https://issuer.example.test/"
+        }
+      }
+    }
+    routes = [
+      { method = "ANY", path = "/api/{proxy+}", authorizer = "oidc", scopes = ["admin:console"] }
+    ]
+  }
+  assert {
+    condition     = aws_apigatewayv2_route.this["ANY /api/{proxy+}"].authorization_scopes == toset(["admin:console"])
+    error_message = "a JWT route given scopes must require them"
+  }
+}
+
+# Unset scopes stay null, not an empty set — an empty set is a permanent diff.
+run "jwt_route_without_scopes_is_null" {
+  command = plan
+  variables {
+    authorizer_configs = {
+      oidc = {
+        type             = "JWT"
+        name             = "oidc"
+        identity_sources = ["$request.header.Authorization"]
+        jwt = {
+          audience = ["https://example.test/api"]
+          issuer   = "https://issuer.example.test/"
+        }
+      }
+    }
+    routes = [
+      { method = "GET", path = "/protected", authorizer = "oidc" }
+    ]
+  }
+  assert {
+    condition     = aws_apigatewayv2_route.this["GET /protected"].authorization_scopes == null
+    error_message = "a route with no scopes must leave authorization_scopes unset"
+  }
+}
+
+# Scopes on a REQUEST authorizer are silently inert at the API — drop them
+# rather than let the config claim enforcement that is not happening.
+run "request_route_ignores_scopes" {
+  command = plan
+  variables {
+    authorizer_configs = {
+      custom_auth = {
+        type             = "REQUEST"
+        name             = "custom-auth"
+        identity_sources = ["$request.header.X-Token"]
+        authorizer_uri   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:auth/invocations"
+      }
+    }
+    routes = [
+      { method = "POST", path = "/action", authorizer = "custom_auth", scopes = ["admin:console"] }
+    ]
+  }
+  assert {
+    condition     = aws_apigatewayv2_route.this["POST /action"].authorization_scopes == null
+    error_message = "scopes on a REQUEST authorizer must not be set"
+  }
+}
+
+# Scopes without an authorizer are rejected outright: nothing would check them.
+run "scopes_require_an_authorizer" {
+  command = plan
+  variables {
+    routes = [
+      { method = "GET", path = "/open", scopes = ["admin:console"] }
+    ]
+  }
+  expect_failures = [var.routes]
+}
