@@ -121,6 +121,18 @@ resource "aws_apigatewayv2_route" "this" {
     ? aws_apigatewayv2_authorizer.this[each.value.authorizer].id
     : null
   )
+
+  # Only meaningful for JWT authorizers — API Gateway has nowhere to read a
+  # scope from on a REQUEST (Lambda) authorizer, and passing them there would
+  # be silently inert. Null rather than [] so an unset value does not show as
+  # a permanent diff.
+  authorization_scopes = (
+    length(coalesce(each.value.scopes, [])) > 0
+    && each.value.authorizer != "NONE" && each.value.authorizer != null
+    && aws_apigatewayv2_authorizer.this[each.value.authorizer].authorizer_type == "JWT"
+    ? each.value.scopes
+    : null
+  )
 }
 
 resource "aws_lambda_permission" "apigw" {
