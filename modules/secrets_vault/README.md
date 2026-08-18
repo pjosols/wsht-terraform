@@ -6,10 +6,13 @@ e.g. appw/prod/*), plus — optionally — the Secrets Manager secret containers
 
 App accounts (B, C, D) assume *their own* role (not a shared one) to fetch secrets.
 The role's permission policy grants secretsmanager:GetSecretValue on
-"<path\_prefix>/*", so it can never read another app's secrets. Secrets use the
-AWS-managed key (aws/secretsmanager); decryption is same-account (the read happens
-under this role, inside the vault account), so no customer-managed KMS key or
-cross-account kms:Decrypt grant is required.
+"<path\_prefix>/*", so it can never read another app's secrets. Secrets default to
+the AWS-managed key (aws/secretsmanager): reads via the reader role happen inside
+the vault account, so that path needs no customer-managed key. Set kms\_key\_id to
+encrypt with a CMK instead — required if a principal in another account must read
+a secret directly (the AWS-managed key cannot be shared cross-account). Note the
+CMK's key policy must grant readers kms:Decrypt itself; the reader role's inline
+policy grants Secrets Manager actions only.
 
 This module deliberately manages only secret *containers* and IAM — never secret
 *values*. Plaintext therefore never lands in Terraform state. Put values in
@@ -51,6 +54,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_external_id"></a> [external\_id](#input\_external\_id) | If set, assuming the reader role requires this sts:ExternalId (confused-deputy mitigation). The consumer must pass the same value at AssumeRole time. | `string` | `null` | no |
+| <a name="input_kms_key_id"></a> [kms\_key\_id](#input\_kms\_key\_id) | Customer-managed KMS key (ARN or ID) encrypting the secret containers. Null uses the AWS-managed aws/secretsmanager key, which is free but cannot be shared cross-account — supply a CMK when a reader in another account needs kms:Decrypt. | `string` | `null` | no |
 | <a name="input_max_session_duration"></a> [max\_session\_duration](#input\_max\_session\_duration) | Maximum session duration in seconds for the reader role. 3600–43200. | `number` | `3600` | no |
 | <a name="input_name"></a> [name](#input\_name) | Override the derived resource-name base. Defaults to path\_prefix with slashes replaced by dashes (e.g. "appw/prod" -> "appw-prod"). Names the reader role ("<base>-secrets-reader") and its inline policy ("<base>-secrets-read"). Leave null to derive it so the names can't drift from the prefix; set it only when you need a specific role name. | `string` | `null` | no |
 | <a name="input_path_prefix"></a> [path\_prefix](#input\_path\_prefix) | Path prefix under which this app's secrets live. House convention is "<app>/<env>", e.g. "appw/prod" — app-first, so an app's secrets group together and an app-wide grant is a single "<app>/*" wildcard. The reader role is scoped to "<path\_prefix>/*", so instantiate once per (app, env) — each (app, env) gets its own role and trusted principals, keeping prod secrets unreadable by a staging role. Drop the env segment (e.g. "appw") for single-account setups. No leading or trailing slash. | `string` | n/a | yes |

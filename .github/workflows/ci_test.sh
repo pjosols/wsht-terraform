@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Regression tests for .github/workflows/ci.yml
 # Verifies: trigger configuration, pinned action versions, terraform version pinning,
-# module matrix coverage (validate excludes cloudfront/waf; test includes all),
-# job dependencies, and presence of fmt/validate/test steps.
+# module matrix coverage (validate: every module except cloudfront/waf, which need
+# configuration_aliases; test: every module with a tests/ directory), job dependencies,
+# the ci-passed gate job, and presence of fmt/validate/test steps.
 
 set -uo pipefail
 
@@ -58,16 +59,24 @@ assert tf['with']['terraform_version']
 "
 assert_not "terraform_version not open range" grep -qE "terraform_version:.*[~^>]" "$CI"
 
-# Validate matrix: 7 modules, no cloudfront/waf
-for mod in acm apigw cognito kms lambda_container monitoring s3_bucket; do
+# Validate matrix: every module except cloudfront/waf
+for mod in acm apigw app_server bedrock_kb_s3vectors cognito kms lambda_container \
+           monitoring org_account s3_bucket s3_vectors secrets_consumer secrets_vault \
+           ses_inbound tfstate_backend; do
   py "validate matrix includes $mod" "assert '$mod' in jobs['validate']['strategy']['matrix']['module']"
 done
 py "waf not in validate matrix"        "assert 'waf' not in jobs['validate']['strategy']['matrix']['module']"
 py "cloudfront not in validate matrix" "assert 'cloudfront' not in jobs['validate']['strategy']['matrix']['module']"
 
-# Test matrix: includes cloudfront and waf
-py "waf in test matrix"        "assert 'waf' in jobs['test']['strategy']['matrix']['module']"
-py "cloudfront in test matrix" "assert 'cloudfront' in jobs['test']['strategy']['matrix']['module']"
+# Test matrix: every module with a tests/ directory (includes cloudfront and waf,
+# which skip validate; excludes the three modules without tests)
+for mod in acm apigw app_server cloudfront cognito kms lambda_container monitoring \
+           org_account s3_bucket secrets_consumer secrets_vault tfstate_backend waf; do
+  py "test matrix includes $mod" "assert '$mod' in jobs['test']['strategy']['matrix']['module']"
+done
+py "no test-less module in test matrix" "
+assert not {'bedrock_kb_s3vectors', 's3_vectors', 'ses_inbound'} & set(jobs['test']['strategy']['matrix']['module'])
+"
 
 # Job dependencies
 py "test job depends on validate" "
@@ -78,6 +87,10 @@ py "checkov job exists"          "assert 'checkov' in jobs"
 py "checkov depends on validate" "
 needs = jobs['checkov']['needs']
 assert needs == 'validate' or 'validate' in needs
+"
+py "ci-passed gate job exists" "assert 'ci-passed' in jobs"
+py "ci-passed needs validate, test, checkov" "
+assert set(jobs['ci-passed']['needs']) == {'validate', 'test', 'checkov'}
 "
 py "checkov uses .checkov.yaml" "
 steps = jobs['checkov']['steps']

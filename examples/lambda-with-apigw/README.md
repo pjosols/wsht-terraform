@@ -15,7 +15,7 @@ Wires together `lambda_container`, `apigw`, `kms`, and `monitoring` into a compl
 
 ```hcl
 module "my_service" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/lambda-with-apigw?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/lambda-with-apigw?ref=v1.10.0"
 
   name      = "my-service"
   image_uri = "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-service:latest"

@@ -1,5 +1,5 @@
 module "waf" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/waf?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/waf?ref=v1.10.0"
 
   providers = {
     aws.us_east_1 = aws.us_east_1
@@ -12,7 +12,7 @@ module "waf" {
 }
 
 module "acm" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/acm?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/acm?ref=v1.10.0"
 
   domain_name = var.domain
 
@@ -20,15 +20,30 @@ module "acm" {
 }
 
 module "s3" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/s3_bucket?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/s3_bucket?ref=v1.10.0"
 
   name = "${var.name}-origin"
+
+  # OAC signs requests as the CloudFront service principal; the bucket must
+  # grant it read, scoped to this distribution. Merged with the module's
+  # baseline SSL-only policy.
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AllowCloudFrontOAC"
+      Effect    = "Allow"
+      Principal = { Service = "cloudfront.amazonaws.com" }
+      Action    = "s3:GetObject"
+      Resource  = "arn:aws:s3:::${var.name}-origin/*"
+      Condition = { StringEquals = { "AWS:SourceArn" = module.cloudfront.distribution_arn } }
+    }]
+  })
 
   tags = var.tags
 }
 
 module "cloudfront" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/cloudfront?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/cloudfront?ref=v1.10.0"
 
   providers = {
     aws.us_east_1 = aws.us_east_1

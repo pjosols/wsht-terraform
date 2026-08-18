@@ -15,7 +15,7 @@ Wires together `s3_bucket`, `cloudfront`, `waf`, and `acm` into a static-site or
 
 ```hcl
 module "my_site" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/cloudfront-s3?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/cloudfront-s3?ref=v1.10.0"
 
   name   = "my-site"
   domain = "example.com"
@@ -32,10 +32,11 @@ module "my_site" {
 - `waf.web_acl_arn` → `cloudfront.web_acl_id` — WAF protects the distribution
 - `acm.certificate_arn` → `cloudfront.acm_certificate_arn` — TLS for the custom domain
 - `s3.bucket_regional_domain_name` → `cloudfront.origin_domain_name` — CloudFront fetches from S3 via OAC
+- `cloudfront.distribution_arn` → `s3.policy_json` — bucket policy grants `s3:GetObject` to this distribution only
 
 ## Notes
 
 - No backend is configured — callers supply their own `terraform { backend ... }` block.
 - After `terraform apply`, create the DNS records from `acm_validation_records` output to complete certificate validation before CloudFront can serve HTTPS traffic.
-- The S3 bucket policy granting CloudFront OAC access is managed by the `cloudfront` module; no manual bucket policy is needed.
+- The `cloudfront` module creates the OAC but not the bucket policy — the bucket must grant `s3:GetObject` to `cloudfront.amazonaws.com` itself. This example supplies that statement via `s3_bucket`'s `policy_json`, scoped to the distribution ARN with an `AWS:SourceArn` condition.
 - WAF is scoped to `CLOUDFRONT` and must be created in `us-east-1` (enforced by the `waf` module).

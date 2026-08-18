@@ -4,7 +4,7 @@ locals {
 }
 
 module "kms" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/kms?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/kms?ref=v1.10.0"
 
   name        = var.name
   description = "KMS key for ${var.name} Lambda and API Gateway logs"
@@ -17,7 +17,7 @@ module "kms" {
 }
 
 module "lambda" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/lambda_container?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/lambda_container?ref=v1.10.0"
 
   name      = var.name
   image_uri = var.image_uri
@@ -40,7 +40,7 @@ module "lambda" {
 }
 
 module "apigw" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/apigw?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/apigw?ref=v1.10.0"
 
   name                 = var.name
   lambda_invoke_arn    = module.lambda.invoke_arn
@@ -56,7 +56,7 @@ module "apigw" {
 }
 
 module "monitoring" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/monitoring?ref=v1.0.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/monitoring?ref=v1.10.0"
 
   lambda_function_name = module.lambda.function_name
   lambda_function_arn  = module.lambda.function_arn

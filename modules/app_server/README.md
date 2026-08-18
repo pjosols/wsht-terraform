@@ -7,8 +7,14 @@ origin**, with end-to-end TLS and no NAT.
 - **Security group**: inbound `:443` from CloudFront's origin-facing managed prefix list
   only — nothing else. (TLS is terminated on the box, e.g. by Caddy, so the
   CloudFront→origin leg is encrypted.)
-- **Public IP** for internet egress (ECR, Docker, ACME/DNS, AWS APIs) — no NAT gateway.
+- **Elastic IP** (`assign_elastic_ip`, default true) so the origin address survives instance
+  replacement; `public_ip` returns the EIP. Egress (ECR, Docker, ACME/DNS, AWS APIs) goes
+  out the public IP — no NAT gateway. Set `assign_elastic_ip = false` to manage the EIP
+  outside the module and keep the auto-assigned public IP.
 - **Access** via SSM Session Manager (no SSH key, no inbound `:22`).
+- **Monitoring**: detailed (1-minute) CloudWatch metrics on by default — billed per
+  instance; set `detailed_monitoring = false` for the free 5-minute metrics. The instance
+  is always EBS-optimized with an encrypted root volume.
 - **IAM role**: `AmazonSSMManagedInstanceCore`, ECR pull, read of the configured SSM
   parameters (+ `kms:Decrypt` for SecureStrings via the SSM service), plus the caller's
   `additional_iam_policy_json` for app permissions.

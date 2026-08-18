@@ -217,7 +217,7 @@ backend "s3" {
 ## Module conventions (match existing modules)
 
 - `versions.tf`: `required_version = ">= 1.6"`, `aws ~> 6.41`
-- `main.tf`, `variables.tf`, `outputs.tf` — no other files
+- `main.tf`, `variables.tf`, `outputs.tf`, plus the `versions.tf` above — no other `.tf` files
 - File-level JSDoc comment block describing what the module creates
 - `tests/<module_name>.tftest.hcl` with plan-only assertions covering: resource creation, output values, validation rejections
 - No hardcoded region or account ID — use `data` sources or variables

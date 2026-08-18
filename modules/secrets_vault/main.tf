@@ -7,10 +7,13 @@
  *
  * App accounts (B, C, D) assume *their own* role (not a shared one) to fetch secrets.
  * The role's permission policy grants secretsmanager:GetSecretValue on
- * "<path_prefix>/*", so it can never read another app's secrets. Secrets use the
- * AWS-managed key (aws/secretsmanager); decryption is same-account (the read happens
- * under this role, inside the vault account), so no customer-managed KMS key or
- * cross-account kms:Decrypt grant is required.
+ * "<path_prefix>/*", so it can never read another app's secrets. Secrets default to
+ * the AWS-managed key (aws/secretsmanager): reads via the reader role happen inside
+ * the vault account, so that path needs no customer-managed key. Set kms_key_id to
+ * encrypt with a CMK instead — required if a principal in another account must read
+ * a secret directly (the AWS-managed key cannot be shared cross-account). Note the
+ * CMK's key policy must grant readers kms:Decrypt itself; the reader role's inline
+ * policy grants Secrets Manager actions only.
  *
  * This module deliberately manages only secret *containers* and IAM — never secret
  * *values*. Plaintext therefore never lands in Terraform state. Put values in

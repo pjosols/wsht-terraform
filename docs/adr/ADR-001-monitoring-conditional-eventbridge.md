@@ -8,7 +8,7 @@ The monitoring module creates CloudWatch alarms unconditionally for every Lambda
 
 The resource must be created zero or one times depending on whether `schedule_expression` is set. Terraform offers two mechanisms for this: `count` and `for_each`.
 
-The project conventions explicitly prohibit `count` for conditional resources and require `for_each` with a set or map instead.
+At the time, project conventions prohibited `count` for conditional resources and required `for_each` with a set or map instead. (Update 2026-08: `app_server` has since used `count` for simple boolean zero-or-one resources — its Elastic IP and optional IAM policy — so the prohibition is no longer absolute; `for_each` remains the pattern where the key would otherwise shift.)
 
 ## Decision
 A local set is derived from `schedule_expression`:

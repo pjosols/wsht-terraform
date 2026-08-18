@@ -25,7 +25,7 @@ the example to keep it to two providers.
 
 ```hcl
 module "appw_secrets" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/secrets-cross-account?ref=v1.6.1"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/secrets-cross-account?ref=v1.10.0"
 
   prod_account_id        = "222222222222"
   staging_account_id     = "333333333333"
