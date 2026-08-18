@@ -30,19 +30,22 @@ All modules require Terraform >= 1.6 and `hashicorp/aws ~> 6.41`. CI runs Terraf
 
 ## Usage
 
+Source modules from this repo pinned to a release tag:
+
 ```hcl
-module "api" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/lambda_container?ref=v1.10.1"
-
-  name            = "my-api"
-  image_uri       = "123456789.dkr.ecr.us-east-1.amazonaws.com/my-api:latest"
-  iam_policy_json = data.aws_iam_policy_document.api.json
-  timeout         = 30
-  memory_size     = 256
-
-  tags = { Project = "my-project" }
+module "example" {
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/<module>?ref=v1.10.1"
+  # inputs — see the module's README and variables.tf
 }
 ```
+
+Worked examples wiring several modules together live in `examples/`:
+
+| Example | Shows |
+|--------|-------------|
+| `examples/cloudfront-s3` | Static-site/asset stack: private S3 origin + CloudFront with OAC bucket policy, WAF, ACM. |
+| `examples/lambda-with-apigw` | Container Lambda behind HTTP API Gateway, with KMS and CloudWatch alarms. |
+| `examples/secrets-cross-account` | Centralized secrets across two accounts: vault containers + reader role, consumer grant. |
 
 ## Documentation
 
