@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-08-15
+
+### Added
+- `apigw`: routes accept an optional `scopes` list on JWT-authorized routes — API Gateway reads the token's `scope`/`scp` claim and requires at least one of them (ANY match, so listing several widens access) before invoking the integration. Ignored with a REQUEST authorizer (API Gateway has no claim to read) and rejected on unauthorized routes, so scopes can't silently read as enforcement while enforcing nothing
+- `secrets_vault`: optional `kms_key_id` to encrypt secret containers with a customer-managed key. The AWS-managed `aws/secretsmanager` key can't be shared across accounts, so the module's cross-account reader role needs a CMK to actually decrypt; default stays the AWS-managed key
+- `app_server`: `detailed_monitoring` variable (default true — 1-minute CloudWatch metrics, billed per instance); `ebs_optimized` now set explicitly instead of taking the account default
+- `app_server`: test suite covering IMDSv2, root-volume encryption, and CloudFront-scoped ingress
+
+### Changed
+- CI: `validate` and `test` matrices now cover every module (four modules with 39 passing tests were silently skipped); branch protection collapsed to a single `ci-passed` gate job so matrix changes can't silently drop a required check; Terraform pinned to 1.15.5; fail-fast disabled so one failing module doesn't mask the rest
+
+## [1.9.0] - 2026-07-27
+
+### Changed
+- `app_server`: AMI drift can no longer replace a running instance. The latest-AL2023 SSM pointer moves whenever AWS publishes a new image, so any unrelated `terraform apply` could plan a destroy/create of a production box; `lifecycle ignore_changes = [ami]` makes replacement explicit via `terraform apply -replace=...`
+
+### Added
+- `app_server`: optional `ami` variable to pin a specific image (default null keeps the SSM lookup)
+
+## [1.8.0] - 2026-06-10
+
+### Added
+- `cloudfront`: optional `custom_headers` on `extra_origins`, so a distribution can send origin custom headers (e.g. a shared-secret `X-Origin-Verify`) and origins can reject traffic that bypasses CloudFront — the managed prefix list admits any distribution, not just ours
+
+## [1.7.0] - 2026-06-07
+
+### Added
+- `app_server`: the module now owns the origin's Elastic IP (`assign_elastic_ip`, default true); `public_ip` output returns the EIP when assigned. Both existing consumers attached one externally — opt out with `assign_elastic_ip = false` to keep managing it outside the module
+
 ## [1.6.1] - 2026-06-06
 
 ### Added
