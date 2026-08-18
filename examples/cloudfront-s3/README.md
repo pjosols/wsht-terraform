@@ -15,7 +15,7 @@ Wires together `s3_bucket`, `cloudfront`, `waf`, and `acm` into a static-site or
 
 ```hcl
 module "my_site" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/cloudfront-s3?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//examples/cloudfront-s3?ref=v1.10.1"
 
   name   = "my-site"
   domain = "example.com"

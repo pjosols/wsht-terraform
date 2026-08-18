@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-08-17
+
+### Fixed
+- `examples/cloudfront-s3`: the stack planned but served 403 — nothing granted CloudFront read on the origin bucket (the `cloudfront` module creates the OAC, not the bucket policy). The example now supplies `policy_json` granting `s3:GetObject` to `cloudfront.amazonaws.com`, scoped to the distribution ARN
+- Docs corrected against the current modules: `secrets_vault` no longer claims a CMK is never needed (and notes the CMK key policy must grant `kms:Decrypt` itself); regenerated `cloudfront`/`secrets_vault` READMEs pick up `custom_headers` and `kms_key_id`; `app_server` README documents the Elastic IP and monitoring behavior; root README lists all 17 modules; example `?ref=` pins updated; changelog backfilled for 1.7.0–1.10.0
+
 ## [1.10.0] - 2026-08-15
 
 ### Added

@@ -32,7 +32,7 @@ All modules require Terraform >= 1.6 and `hashicorp/aws ~> 6.41`. CI runs Terraf
 
 ```hcl
 module "api" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/lambda_container?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/lambda_container?ref=v1.10.1"
 
   name            = "my-api"
   image_uri       = "123456789.dkr.ecr.us-east-1.amazonaws.com/my-api:latest"

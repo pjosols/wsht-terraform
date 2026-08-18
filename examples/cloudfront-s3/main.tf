@@ -1,5 +1,5 @@
 module "waf" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/waf?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/waf?ref=v1.10.1"
 
   providers = {
     aws.us_east_1 = aws.us_east_1
@@ -12,7 +12,7 @@ module "waf" {
 }
 
 module "acm" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/acm?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/acm?ref=v1.10.1"
 
   domain_name = var.domain
 
@@ -20,7 +20,7 @@ module "acm" {
 }
 
 module "s3" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/s3_bucket?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/s3_bucket?ref=v1.10.1"
 
   name = "${var.name}-origin"
 
@@ -43,7 +43,7 @@ module "s3" {
 }
 
 module "cloudfront" {
-  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/cloudfront?ref=v1.10.0"
+  source = "git::https://github.com/pjosols/wsht-terraform.git//modules/cloudfront?ref=v1.10.1"
 
   providers = {
     aws.us_east_1 = aws.us_east_1
